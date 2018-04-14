@@ -185,12 +185,12 @@ class Leverage(object):
         self.get_price()
         self.interest_grow()
         self.calculte_cap()
-        self.risk = [self.risk_rate, self.stop_out_price]
+        self.risk['Risk Rate', 'STOP OUT PRICE'] = [self.risk_rate, self.stop_out_price]
         self.monitor.loc[self.currency_1] = [self.total_asset_1, self.borrowed_1, self.borrow_available_1, self.withdraw_available_1]
         self.monitor.loc[self.currency_2] = [self.total_asset_2, self.borrowed_2, self.borrow_available_2, self.withdraw_available_2]
         
-        print(self.risk)
-        print(self.monitor)
+#        self.risk
+#        self.monitor
     
 if __name__ == "__main__":
     
