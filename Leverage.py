@@ -70,7 +70,7 @@ class Leverage(object):
             try:
                 ticker_data = requests.get(ticker_url).json()
                 self.price = (float(ticker_data['askPrice']) + float(ticker_data['bidPrice']) ) / 2.0
-                print("Current", pair_symbol, "price is", self.price)
+#                print("Current", pair_symbol, "price is", self.price)
             except:
                 print("Unable to get price by current url")
         else:
