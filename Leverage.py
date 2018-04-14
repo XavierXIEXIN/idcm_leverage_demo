@@ -16,13 +16,17 @@ class Leverage(object):
         
         self.currency_1 = currency_1 # First currency name
         self.currency_2 = currency_2 # Second cunrrency name
-        self.price = 1 # Price as how much currency_2 worth one currency_1
-        self.risk_rate = 5 # Risk Rate = (margin + borrowed - interests) / borrowed
-        self.risk_rate_info = "No risk"
+
+        # Parameter controlled by backend
+        self.max_lever = 3   # Maximum lever
+        self.withdraw_risk_rate = 2 # When risk rate > 200% when the leverage is 2, surplus currency can be withdrawed
+        self.margin_call_risk_rate = 1.5 # Margin call risk rate as 150% when the leverage reach max 3
+        self.stop_out_risk_rate = 1.1 # When risk rate reach 110%, mandatory liquidate
         
         self.interest_rate_1 = 0.001 # Interest rate as 0.1%
         self.interest_rate_2 = 0.001
         self.trading_fee = 0.001
+        
         # Initial
         self.deposit_count = 0
         self.all_deposit = pd.DataFrame(columns=['time', 'deposit_1', 'deposit_2'])
@@ -32,21 +36,14 @@ class Leverage(object):
         self.all_trade = pd.DataFrame(columns=['time', 'trade_1', 'trade_2', 'fee_1', 'fee_2'])
         self.interest_1 = 0
         self.interest_2 = 0
-        # Parameter controlled by backend
-        self.max_lever = 3   # Maximum lever
-        self.withdraw_risk_rate = 2 # When risk rate > 200% when the leverage is 2, surplus currency can be withdrawed
-        self.margin_call_risk_rate = 1.5 # Margin call risk rate as 150% when the leverage reach max 3
-        self.stop_out_risk_rate = 1.1 # When risk rate reach 110%, mandatory liquidate
 
+        self.price = 1 # Price as how much currency_2 worth one currency_1
+        self.risk_rate = 5 # Risk Rate = (margin + borrowed - interests) / borrowed
+        self.risk_rate_info = "No Risk"
+        
         # Capital variables
-        self.capital_1 = 0  # Capital including margin and borrowed assets in currency 1
-        self.capital_2 = 0
-        
-        self.collateral_1 = 0 # Initial currency 1 amount as collateral
-        self.collateral_2 = 0 # Initial currency 2 amount as collateral
-        
-        self.margin_1 = 0   # Initial margin in currency 1
-        self.margin_2 = 0   # Initial margin in currency 2
+        self.total_asset_1 = 0
+        self.total_asset_2 = 0
         
         self.borrow_available_1 = 0 # Maximum available for borrow = margin_1 * (max_lever - 1)
         self.borrow_available_2 = 0
@@ -54,22 +51,16 @@ class Leverage(object):
         self.borrowed_1 = 0 # Initial borrowed currency 1
         self.borrowed_2 = 0 # Initial borrowed currency 2
         
-        self.trade_available_1 = 0 # Available for trading = collatera + borrowed
-        self.trade_available_2 = 0
-        
         self.withdraw_available_1 = 0 # When risk rate > withdraw_risk_rate, surplus currency can be withdrawed
         self.withdraw_available_2 = 0
-    
-    def capital_cal(self):
-        '''
-        Calculate all the capital variables.
-        '''
-        self.capital_1 = self.trade_available_1 + self.trade_available_2 / self.price
-        self.capital_2 = self.trade_available_2 * self.price + self.trade_available_2
         
+        self.stop_out_price = None # Approximate stop out price
+        self.risk = pd.Series(index=['Risk Rate', 'STOP OUT PRICE'], name = currency_1.upper() + '/' + currency_2.upper() )
+        self.monitor = pd.DataFrame(index=[currency_1, currency_2], columns=['Total', 'Borrowed', 'Borrow Available', 'Withdraw Available'])        
         
-    
     def get_price(self, price = 0, ticker_url = "https://api.binance.com/api/v1/ticker/24hr?symbol="):
+        '''Get current price.
+        '''
         pair_symbol = str(self.currency_1).upper() + str(self.currency_2).upper()
         ticker_url += pair_symbol
         if price > 0:
@@ -85,38 +76,53 @@ class Leverage(object):
         else:
             print("None price parameter, unable to get current price")
             
-    def deposit(self, amount_1=0, amount_2=0):
+    def calculte_cap(self):
+        '''Calculate all the capital variables.
         '''
-        Deposit assets as collateral margin.
+        self.get_price()
+        
+        capital_1 = self.total_asset_1 + self.total_asset_2 / self.price   # Total capital in currency 1
+        capital_2 = self.total_asset_1 * self.price + self.total_asset_2
+        borrowed_capital_1 = self.borrowed_1 + self.borrowed_2 / self.price   # Total borrowed capital in currency 1
+        borrowed_capital_2 = self.borrowed_1 * self.price + self.borrowed_2
+        interest_capital_1 = self.interest_1 + self.interest_2 / self.price   # Total interest capital in currency 1
+        interest_capital_2 = self.interest_1 * self.price + self.interest_2
+        if borrowed_capital_1 >0:
+            self.risk_rate = capital_1 / borrowed_capital_1
+#           self.risk_rate = capital_2 / borrowed_capital_2
+        if self.risk_rate > self.margin_call_risk_rate:
+            self.risk_rate_info = 'No Risk'
+        elif self.risk_rate > self.stop_out_risk_rate and self.risk_rate <= self.margin_call_risk_rate:
+            self.risk_rate_info = 'Margin Call'
+        elif self.risk_rate <= self.stop_out_risk_rate:
+            self.risk_rate_info = 'STOP OUT'
+        
+        self.borrow_available_1 = (capital_1 - borrowed_capital_1 - interest_capital_1) * (self.max_lever - 1) - borrowed_capital_1
+        self.borrow_available_2 = (capital_2 - borrowed_capital_2 - interest_capital_2) * (self.max_lever - 1) - borrowed_capital_2
+        self.withdraw_available_1 = min(capital_1 - borrowed_capital_1 * self.withdraw_risk_rate, self.total_asset_1)
+        self.withdraw_available_2 = min(capital_2 - borrowed_capital_2 * self.withdraw_risk_rate, self.total_asset_2)
+        
+        self.stop_out_price = (self.borrowed_2 * self.stop_out_risk_rate + self.interest_2 - self.total_asset_2) / (self.total_asset_1 - self.interest_1 - self.borrowed_1 * self.stop_out_risk_rate)
+
+    def deposit(self, amount_1=0, amount_2=0):
+        '''Deposit assets.
         For a trading pair, both currency can be collateral and exchange with current price.
         '''
         self.deposit_count += 1
         self.all_deposit.loc[self.deposit_count] = [time(), amount_1, amount_2]
 
-        self.collateral_1 += amount_1
-        self.collateral_2 += amount_2
+        self.total_asset_1 += amount_1
+        self.total_asset_2 += amount_2
         
-        self.margin_1 = self.collateral_1 + self.collateral_2 / self.price
-        self.margin_2 = self.collateral_1 * self.price + self.collateral_2
-        
-        
-        
-        self.borrow_available_1 = self.margin_1 * (self.max_lever - 1) - (self.borrowed_1 + self.borrowed_2 / self.price)
-        self.borrow_available_2 = self.margin_2 * (self.max_lever - 1) - (self.borrowed_1 * self.price + self.borrowed_2)
-        
-        self.trade_available_1 = min(self.margin_1 * self.max_lever, self.collateral_1 + self.borrowed_1)
-        self.trade_available_2 = min(self.margin_2 * self.max_lever, self.collateral_2 + self.borrowed_2)
-        
-        self.withdraw_available_1 = min(self.margin_1 - (self.borrowed_1 + self.borrowed_2 / self.price) * self.withdraw_risk_rate, self.trade_available_1)
-        self.withdraw_available_2 = min(self.margin_2 - (self.borrowed_1 * self.price + self.borrowed_2) * self.withdraw_risk_rate, self.trade_available_2)
-        
+        self.calculte_cap()
         
     def loan(self, amount_1=0, amount_2=0):
-        '''
-        Loan assets to customer
+        '''Loan assets to customer.
         '''
         if amount_1 > self.borrow_available_1 or amount_2 > self.borrow_available_2:
             print("Borrow amount exceed maximum!")
+        elif amount_1 < 0 or amount_2 < 0:
+            print("Loan amount must be positive!")
         else:
             self.loan_count += 1
             self.all_loan.loc[self.loan_count] = [time(), amount_1, amount_2, amount_1 * self.interest_rate_1, amount_2 * self.interest_rate_2]
@@ -124,36 +130,13 @@ class Leverage(object):
             self.borrowed_1 += amount_1
             self.borrowed_2 += amount_2
             
-            self.borrow_available_1 = self.margin_1 * (self.max_lever - 1) - (self.borrowed_1 + self.borrowed_2 / self.price)
-            self.borrow_available_2 = self.margin_2 * (self.max_lever - 1) - (self.borrowed_1 * self.price + self.borrowed_2)
-            self.trade_available_1 = min(self.margin_1 * self.max_lever, self.collateral_1 + self.borrowed_1)
-            self.trade_available_2 = min(self.margin_2 * self.max_lever, self.collateral_2 + self.borrowed_2)
-            self.withdraw_available_1 = min(self.margin_1 - (self.borrowed_1 + self.borrowed_2 / self.price) * self.withdraw_risk_rate, self.trade_available_1)
-            self.withdraw_available_2 = min(self.margin_2 - (self.borrowed_1 * self.price + self.borrowed_2) * self.withdraw_risk_rate, self.trade_available_2)
-
-
-
-    def trade(self, amount_1=0, amount_2=0):
-        '''
-        Trade
-        '''
-        if amount_1 > self.trade_available_1 or amount_2 > self.trade_available_2:
-            print("There is not enough assets for trading!")
-        else:
-            self.trade_count += 1
-            self.all_trade.loc[self.trade_count] = [time(), amount_1, amount_2, amount_1 * self.trading_fee, amount_2 * self.trading_fee]
+            self.interest_1 = self.all_loan['interest_1'].sum()
+            self.interest_2 = self.all_loan['interest_2'].sum()
             
-            self.collateral_1 = self.collateral_1 - amount_1 + amount_2 / self.price
-            self.collateral_2 = self.collateral_2 - amount_1 * self.price + amount_2
+            self.total_asset_1 += amount_1
+            self.total_asset_2 += amount_2
             
-            self.borrow_available_1 = self.margin_1 * (self.max_lever - 1) - (self.borrowed_1 + self.borrowed_2 / self.price)
-            self.borrow_available_2 = self.margin_2 * (self.max_lever - 1) - (self.borrowed_1 * self.price + self.borrowed_2)
-            self.trade_available_1 = min(self.margin_1 * self.max_lever, self.collateral_1 + self.borrowed_1)
-            self.trade_available_2 = min(self.margin_2 * self.max_lever, self.collateral_2 + self.borrowed_2)
-            self.withdraw_available_1 = min(self.margin_1 - (self.borrowed_1 + self.borrowed_2 / self.price) * self.withdraw_risk_rate, self.trade_available_1)
-            self.withdraw_available_2 = min(self.margin_2 - (self.borrowed_1 * self.price + self.borrowed_2) * self.withdraw_risk_rate, self.trade_available_2)
-
-
+            self.calculte_cap()
 
     def interest_grow(self):
         '''
@@ -173,16 +156,41 @@ class Leverage(object):
     
         self.interest_1 = self.all_loan['interest_1'].sum()
         self.interest_2 = self.all_loan['interest_2'].sum()
-
-    def margin_call():
-        pass
         
-    def stop_out():
-        pass
+        self.calculte_cap()
+        
+    def trade(self, amount_1=0, amount_2=0):
+        '''
+        Trade
+        '''
+        self.get_price()
+        
+        if amount_1 > self.total_asset_1 or amount_2 > self.total_asset_2:
+            print("There is not enough assets for trading!")
+        elif amount_1 < 0 or amount_2 < 0:
+            print("Trade volume must be positive!")
+        else:
+            self.trade_count += 1
+            self.all_trade.loc[self.trade_count] = [time(), amount_1, amount_2, amount_1 * self.trading_fee, amount_2 * self.trading_fee]
+            
+            self.total_asset_1 = self.total_asset_1 - amount_1 + amount_2 * (1 - self.trading_fee) / self.price
+            self.total_asset_2 = self.total_asset_2 - amount_2 + amount_1 * (1 - self.trading_fee) * self.price
+            
+            self.calculte_cap()
+            
     
-    def risk_monitor():
-        pass
-    
+    def risk_monitor(self):
+        '''Monitoring risk by risk rate
+        '''
+        self.get_price()
+        self.interest_grow()
+        self.calculte_cap()
+        self.risk = [self.risk_rate, self.stop_out_price]
+        self.monitor.loc[self.currency_1] = [self.total_asset_1, self.borrowed_1, self.borrow_available_1, self.withdraw_available_1]
+        self.monitor.loc[self.currency_2] = [self.total_asset_2, self.borrowed_2, self.borrow_available_2, self.withdraw_available_2]
+        
+        print(self.risk)
+        print(self.monitor)
     
 if __name__ == "__main__":
     
@@ -191,15 +199,19 @@ if __name__ == "__main__":
     print(btc_usdt.price)
     
     btc_usdt.deposit(0.5, 1000)
-    print(btc_usdt.margin_1, btc_usdt.borrow_available_1, btc_usdt.trade_available_1, btc_usdt.withdraw_available_1)
+    print(btc_usdt.total_asset_1, btc_usdt.borrow_available_1, btc_usdt.withdraw_available_1)
+    print(btc_usdt.total_asset_2, btc_usdt.borrow_available_2, btc_usdt.withdraw_available_2)
     print(btc_usdt.all_deposit)
     
     btc_usdt.loan(0.4, 0)
-    print(btc_usdt.margin_1, btc_usdt.borrow_available_1, btc_usdt.trade_available_1, btc_usdt.withdraw_available_1)
+    print(btc_usdt.total_asset_1, btc_usdt.borrow_available_1, btc_usdt.withdraw_available_1)
+    print(btc_usdt.total_asset_2, btc_usdt.borrow_available_2, btc_usdt.withdraw_available_2)
     print(btc_usdt.all_loan)
     
     btc_usdt.trade(0.8, 0)
-    print(btc_usdt.margin_1, btc_usdt.borrow_available_1, btc_usdt.trade_available_1, btc_usdt.withdraw_available_1)
+    print(btc_usdt.total_asset_1, btc_usdt.borrow_available_1, btc_usdt.withdraw_available_1)
+    print(btc_usdt.total_asset_2, btc_usdt.borrow_available_2, btc_usdt.withdraw_available_2)
     print(btc_usdt.all_trade)
     
+    btc_usdt.risk_monitor()
     
