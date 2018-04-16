@@ -101,29 +101,32 @@ class Leverage(object):
         self.borrow_available_2 = (capital_2 - borrowed_capital_2 - interest_capital_2) * (self.max_lever - 1) - borrowed_capital_2
         self.withdraw_available_1 = min(capital_1 - borrowed_capital_1 * self.withdraw_risk_rate, self.total_asset_1)
         self.withdraw_available_2 = min(capital_2 - borrowed_capital_2 * self.withdraw_risk_rate, self.total_asset_2)
+        if self.total_asset_1 !=0 or self.borrowed_1 != 0:   # Only if borrowed asset 1 with asset 2 as collateral or traded borrowed asset 2 for asset 1, risk_rate change with price
+            self.stop_out_price = (self.borrowed_2 * self.stop_out_risk_rate + self.interest_2 - self.total_asset_2) / (self.total_asset_1 - self.interest_1 - self.borrowed_1 * self.stop_out_risk_rate)
+        else:
+            self.stop_out_price = None
         
-        self.stop_out_price = (self.borrowed_2 * self.stop_out_risk_rate + self.interest_2 - self.total_asset_2) / (self.total_asset_1 - self.interest_1 - self.borrowed_1 * self.stop_out_risk_rate)
-
     def deposit(self, amount_1=0, amount_2=0):
         '''Deposit assets.
         For a trading pair, both currency can be collateral and exchange with current price.
         '''
-        self.deposit_count += 1
-        self.all_deposit.loc[self.deposit_count] = [time(), amount_1, amount_2]
+        if amount_1 > 0 or amount_2 > 0:
+            self.deposit_count += 1
+            self.all_deposit.loc[self.deposit_count] = [time(), amount_1, amount_2]
 
-        self.total_asset_1 += amount_1
-        self.total_asset_2 += amount_2
+            self.total_asset_1 += amount_1
+            self.total_asset_2 += amount_2
         
-        self.calculte_cap()
+            self.calculte_cap()
+        else:
+            print('Deposit amount must be positive!')
         
     def loan(self, amount_1=0, amount_2=0):
         '''Loan assets to customer.
         '''
         if amount_1 > self.borrow_available_1 or amount_2 > self.borrow_available_2:
             print("Borrow amount exceed maximum!")
-        elif amount_1 < 0 or amount_2 < 0:
-            print("Loan amount must be positive!")
-        else:
+        elif amount_1 > 0 or amount_2 > 0:
             self.loan_count += 1
             self.all_loan.loc[self.loan_count] = [time(), amount_1, amount_2, amount_1 * self.interest_rate_1, amount_2 * self.interest_rate_2]
             
@@ -137,7 +140,8 @@ class Leverage(object):
             self.total_asset_2 += amount_2
             
             self.calculte_cap()
-
+        else:
+            print("Loan amount must be positive!")
     def interest_grow(self):
         '''
         Caculate the interests as time past
@@ -167,9 +171,7 @@ class Leverage(object):
         
         if amount_1 > self.total_asset_1 or amount_2 > self.total_asset_2:
             print("There is not enough assets for trading!")
-        elif amount_1 < 0 or amount_2 < 0:
-            print("Trade volume must be positive!")
-        else:
+        elif amount_1 > 0 or amount_2 > 0:
             self.trade_count += 1
             self.all_trade.loc[self.trade_count] = [time(), amount_1, amount_2, amount_1 * self.trading_fee, amount_2 * self.trading_fee]
             
@@ -177,7 +179,8 @@ class Leverage(object):
             self.total_asset_2 = self.total_asset_2 - amount_2 + amount_1 * (1 - self.trading_fee) * self.price
             
             self.calculte_cap()
-            
+        else:
+            print("Trade volume must be positive!")
     
     def risk_monitor(self):
         '''Monitoring risk by risk rate
