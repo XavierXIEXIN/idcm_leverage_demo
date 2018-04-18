@@ -11783,8 +11783,17 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<blockquote><p>“杠杆资产”，杠杆倍数、爆仓说明、做空操作、利息计算及还币规则等</p>
+<blockquote><p>杠杆交易或保证金交易，是指以现有资产作为抵押，加倍借入资产进行交易，随着交易资产波动，收益也会根据杠杆倍数而加倍</p>
 </blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>现由杠杆类 <strong>Leverage</strong> 构建演示程序</p>
 
 </div>
 </div>
@@ -11806,7 +11815,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>以 BTC/USDT 交易对为例</p>
+<p>将每个交易对作为一个单独的杠杆账户，以 BTC/USDT 交易对为例</p>
 
 </div>
 </div>
@@ -11828,7 +11837,9 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>总资产 <strong>total_asset</strong> ：杠杆账户内资产的总和，包括可用资产+冻结资产，冻结资产一般指未成交单中的资产</p>
+<p>该账户与其他账户分离，账户内有总资产、可借资产、可转出资产等变量</p>
+<p>总资产 <strong>total_asset</strong> ：杠杆账户内资产的总和，包括可用资产+冻结资产，其中冻结资产一般指未成交单中的资产</p>
+<p>初始总资产为 0</p>
 
 </div>
 </div>
@@ -11868,17 +11879,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>转入资产 <strong>deposit</strong> ：从其他账户通过资金划转转入杠杆账户里的币</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<blockquote><p>每个交易队构建一个单独的杠杆账户，只有该交易对中两种币可以转入，举例转入0.5个 BTC 与 1000 USDT</p>
-</blockquote>
+<p>若想针对此交易对进行杠杆交易，则应转入资产 <strong>deposit</strong> ：从其他账户通过资金划转转入杠杆账户里的币</p>
 
 </div>
 </div>
@@ -11888,7 +11889,7 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[4]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">deposit</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">deposit</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span> <span class="c1"># 此时举例转入5000 USDT</span>
 </pre></div>
 
 </div>
@@ -11927,7 +11928,7 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>0.5 BTC , 1000 USDT
+<pre>0 BTC , 5000 USDT
 </pre>
 </div>
 </div>
@@ -11967,7 +11968,7 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>0.5 BTC , 1000 USDT
+<pre>0 BTC , 5000.0 USDT
 </pre>
 </div>
 </div>
@@ -12008,7 +12009,7 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>8127.549999999999
+<pre>8141.21
 </pre>
 </div>
 </div>
@@ -12021,7 +12022,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<blockquote><p>get_price() 默认通过币安的 lastPrice 取得价格，实际应用时应通过交易所 order book 取得，且始终取对价，即卖出取买一价，买入取卖一价</p>
+<blockquote><p>get_price() 默认通过币安的买一(bid)和卖一(ask)中间价取得价格，实际应用时应通过交易所 order book 取得，且始终取对价，即卖出取买一价，买入取卖一价</p>
 </blockquote>
 
 </div>
@@ -12110,7 +12111,7 @@ div#notebook {
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>0.6230383079771887</pre>
+<pre>0.614159320297597</pre>
 </div>
 
 </div>
@@ -12152,7 +12153,7 @@ div#notebook {
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>5063.775</pre>
+<pre>5000.0</pre>
 </div>
 
 </div>
@@ -12193,7 +12194,7 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>1.2460766159543775 BTC 或者 10127.55 USDT
+<pre>1.228318640595194 BTC 或者 10000.0 USDT
 </pre>
 </div>
 </div>
@@ -12206,8 +12207,8 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>如果此时看空 BTC，即认为 BTC/USDT 价会走低，则借 BTC 来卖出获得 USDT，等待价格走低再以 USDT 买回 BTC 归还，赚取差价
-假设借 1 个BTC，利用 <strong>loan</strong> 函数，计入借贷记录 <strong>all_loan</strong> 并同时开始计算利息 <strong>interest</strong></p>
+<h2 id="&#20570;&#22810;&#30340;&#24773;&#20917;">&#20570;&#22810;&#30340;&#24773;&#20917;<a class="anchor-link" href="#&#20570;&#22810;&#30340;&#24773;&#20917;">&#182;</a></h2><p>如果此时看多 BTC，即认为 BTC/USDT 价会上涨，则借 USDT 来买入 BTC，等待价格走高再以卖出 BTC 得到 USDT 归还，赚取差价</p>
+<p>利用 loan 函数，计入借贷记录 all_loan 并同时开始计算利息 interest</p>
 
 </div>
 </div>
@@ -12217,20 +12218,8 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">loan</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[13]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">all_loan</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">loan</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8000</span><span class="p">)</span> <span class="c1"># 假设借 8000 USDT</span>
+<span class="n">leverage_demo</span><span class="o">.</span><span class="n">all_loan</span>
 </pre></div>
 
 </div>
@@ -12243,7 +12232,7 @@ div#notebook {
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[13]:</div>
+<div class="prompt output_prompt">Out[12]:</div>
 
 
 
@@ -12276,11 +12265,11 @@ div#notebook {
   <tbody>
     <tr>
       <th>1</th>
-      <td>1.523691e+09</td>
-      <td>1.0</td>
+      <td>1.523850e+09</td>
       <td>0.0</td>
-      <td>0.001</td>
+      <td>8000.0</td>
       <td>0.0</td>
+      <td>8.0</td>
     </tr>
   </tbody>
 </table>
@@ -12304,7 +12293,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;借BTC利率为&#39;</span><span class="p">,</span> <span class="n">leverage_demo</span><span class="o">.</span><span class="n">interest_rate_1</span><span class="p">,</span> <span class="s1">&#39;，借USDT利率为&#39;</span><span class="p">,</span> <span class="n">leverage_demo</span><span class="o">.</span><span class="n">interest_rate_2</span><span class="p">)</span>
@@ -12344,10 +12333,11 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[15]:</div>
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk_monitor</span><span class="p">()</span>
+<span class="c1"># 若客户借入资产和总资产的比值即风险率不随价格变化则没有平仓价，如上虽然借入了 USDT 但客户抵押品也是 USDT，所以风险率不随价格变化，没有平仓价</span>
 <span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk</span>
 </pre></div>
 
@@ -12361,15 +12351,15 @@ div#notebook {
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[15]:</div>
+<div class="prompt output_prompt">Out[14]:</div>
 
 
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>Risk Rate            1.623032
-STOP OUT PRICE   -2506.265664
-Name: BTC/USDT, dtype: float64</pre>
+<pre>Risk Rate         1.625
+STOP OUT PRICE     None
+Name: BTC/USDT, dtype: object</pre>
 </div>
 
 </div>
@@ -12380,10 +12370,11 @@ Name: BTC/USDT, dtype: float64</pre>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">monitor</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># monitor 中可以看到客户当前总资产与剩余可借资产等情况，风险率低于转出风险率 **withdraw_risk_rate** 的情况下客户是不能转出资产的</span>
+<span class="n">leverage_demo</span><span class="o">.</span><span class="n">monitor</span>
 </pre></div>
 
 </div>
@@ -12396,7 +12387,7 @@ Name: BTC/USDT, dtype: float64</pre>
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[16]:</div>
+<div class="prompt output_prompt">Out[15]:</div>
 
 
 
@@ -12428,17 +12419,17 @@ Name: BTC/USDT, dtype: float64</pre>
   <tbody>
     <tr>
       <th>btc</th>
-      <td>1.5</td>
-      <td>1</td>
-      <td>0.244065</td>
-      <td>-0.376968</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0.243698</td>
+      <td>-0.368496</td>
     </tr>
     <tr>
       <th>usdt</th>
-      <td>1000</td>
-      <td>0</td>
-      <td>1983.74</td>
-      <td>-3063.97</td>
+      <td>13000</td>
+      <td>8000</td>
+      <td>1984</td>
+      <td>-3000</td>
     </tr>
   </tbody>
 </table>
@@ -12459,7 +12450,7 @@ Name: BTC/USDT, dtype: float64</pre>
 风险率是决定杠杆账户风险的指标，当风险率≥200%时，账户中多余的资产部分可通过资金划转转出；当风险率≤150%，风险率评估为风险，系统会给用户提示风险；当风险率≤110%，系统将强制平仓，并告知用户；三个阈值 **withdraw_risk_rate**，**margin_call_risk_rate**，**stop_out_risk_rate** 均可调
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;风险率高于&#39;</span><span class="p">,</span> <span class="n">leverage_demo</span><span class="o">.</span><span class="n">withdraw_risk_rate</span><span class="p">,</span> <span class="s1">&#39;部分资产可取出，&#39;</span><span class="p">,</span> \
@@ -12503,17 +12494,18 @@ Name: BTC/USDT, dtype: float64</pre>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>客户借入资产后开始以转入资产和借入资产即总资产交易 <strong>trade</strong>，如上客户看空 BTC，则卖出，假设卖出 1.4 个 BTC</p>
+<p>客户借入资产后开始以转入资产和借入资产即总资产交易 <strong>trade</strong></p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">trade</span><span class="p">(</span><span class="mf">1.4</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># 假设客户以转入与借入部分 USDT 共10000交易买入 BTC</span>
+<span class="n">leverage_demo</span><span class="o">.</span><span class="n">trade</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10000</span><span class="p">)</span>
 <span class="n">leverage_demo</span><span class="o">.</span><span class="n">all_trade</span>
 </pre></div>
 
@@ -12527,7 +12519,7 @@ Name: BTC/USDT, dtype: float64</pre>
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[18]:</div>
+<div class="prompt output_prompt">Out[17]:</div>
 
 
 
@@ -12560,11 +12552,11 @@ Name: BTC/USDT, dtype: float64</pre>
   <tbody>
     <tr>
       <th>1</th>
-      <td>1.523691e+09</td>
-      <td>1.4</td>
+      <td>1.523850e+09</td>
       <td>0.0</td>
-      <td>0.0014</td>
+      <td>10000.0</td>
       <td>0.0</td>
+      <td>10.0</td>
     </tr>
   </tbody>
 </table>
@@ -12588,43 +12580,29 @@ Name: BTC/USDT, dtype: float64</pre>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk_monitor</span><span class="p">()</span>
-<span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk</span>
 </pre></div>
 
 </div>
 </div>
 </div>
 
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-<div class="prompt output_prompt">Out[19]:</div>
-
-
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>Risk Rate             1.621632
-STOP OUT PRICE    12355.388489
-Name: BTC/USDT, dtype: float64</pre>
 </div>
-
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>当前资产情况为：</p>
 
 </div>
 </div>
-
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">monitor</span>
@@ -12640,7 +12618,7 @@ Name: BTC/USDT, dtype: float64</pre>
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[20]:</div>
+<div class="prompt output_prompt">Out[19]:</div>
 
 
 
@@ -12672,21 +12650,65 @@ Name: BTC/USDT, dtype: float64</pre>
   <tbody>
     <tr>
       <th>btc</th>
-      <td>0.1</td>
-      <td>1</td>
-      <td>0.241265</td>
-      <td>-0.378368</td>
+      <td>1.22694</td>
+      <td>0</td>
+      <td>0.241815</td>
+      <td>-0.369243</td>
     </tr>
     <tr>
       <th>usdt</th>
-      <td>12367.7</td>
-      <td>0</td>
-      <td>1960.99</td>
-      <td>-3075.35</td>
+      <td>3000</td>
+      <td>8000</td>
+      <td>1969.45</td>
+      <td>-3007.28</td>
     </tr>
   </tbody>
 </table>
 </div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>风险情况为</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[20]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>Risk Rate            1.624090
+STOP OUT PRICE    4733.729297
+Name: BTC/USDT, dtype: float64</pre>
 </div>
 
 </div>
@@ -12728,7 +12750,7 @@ Name: BTC/USDT, dtype: float64</pre>
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>12355.38848851149</pre>
+<pre>4733.729297297297</pre>
 </div>
 
 </div>
@@ -12741,7 +12763,710 @@ Name: BTC/USDT, dtype: float64</pre>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>即 BTC/USDT 价格达到，风险率达到平仓风险率，账户有平台接管，强制减仓或平仓，如上借入 BTC 的情况，则由账户剩余资产买入 BTC 归还，如归还足额 BTC 后还有剩余，则返还到客户余额</p>
+<p>即 BTC/USDT 价格如果不升反降，达到该价格，则风险率达到平仓风险率，账户有平台接管，强制减仓或平仓，即则由账户剩余资产卖出 BTC 得到 USDT 归还，如归还足额 USDT 后还有剩余，则返还到客户余额</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="&#20570;&#31354;&#30340;&#24773;&#20917;">&#20570;&#31354;&#30340;&#24773;&#20917;<a class="anchor-link" href="#&#20570;&#31354;&#30340;&#24773;&#20917;">&#182;</a></h2><p>如果看空 BTC，即认为 BTC/USDT 价会下跌，则借 BTC 来卖出得到 USDT，等待价格走低再以 USDT 买回 BTC 归还，赚取差价</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;btc&#39;</span><span class="p">,</span> <span class="s1">&#39;usdt&#39;</span><span class="p">)</span>
+<span class="n">leverage_demo</span><span class="o">.</span><span class="n">deposit</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">loan</span><span class="p">(</span><span class="mf">1.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># 假设借 1.1 个 BTC</span>
+<span class="n">leverage_demo</span><span class="o">.</span><span class="n">all_loan</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[23]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time</th>
+      <th>loan_1</th>
+      <th>loan_2</th>
+      <th>interest_1</th>
+      <th>interest_2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>1.523850e+09</td>
+      <td>1.1</td>
+      <td>0.0</td>
+      <td>0.0011</td>
+      <td>0.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>由于是以 USDT 作为抵押借入 BTC，则随着 BTC 价格上升，可能造成借入资产值上升而使得抵押资产不够，即此时风险率会随着价格变化而变化</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk_monitor</span><span class="p">()</span>
+<span class="n">leverage_demo</span><span class="o">.</span><span class="n">monitor</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[24]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Total</th>
+      <th>Borrowed</th>
+      <th>Borrow Available</th>
+      <th>Withdraw Available</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>btc</th>
+      <td>1.1</td>
+      <td>1.1</td>
+      <td>0.125633</td>
+      <td>-0.486083</td>
+    </tr>
+    <tr>
+      <th>usdt</th>
+      <td>5000</td>
+      <td>0</td>
+      <td>1023.21</td>
+      <td>-3958.87</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[25]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>Risk Rate             1.558106
+STOP OUT PRICE    45004.500450
+Name: BTC/USDT, dtype: float64</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>可见以一个资产为抵押借入另一种资产的情况，即使没有交易，也会有一个爆仓价，存在被强平的可能</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>此时看空 BTC，则应将借到的 BTC 卖出</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">trade</span><span class="p">(</span><span class="mf">1.05</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># 假设卖出1.05个 BTC</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[27]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">all_trade</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[27]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time</th>
+      <th>trade_1</th>
+      <th>trade_2</th>
+      <th>fee_1</th>
+      <th>fee_2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>1.523850e+09</td>
+      <td>1.05</td>
+      <td>0.0</td>
+      <td>0.00105</td>
+      <td>0.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>此时资产情况为：</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[28]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk_monitor</span><span class="p">()</span>
+<span class="n">leverage_demo</span><span class="o">.</span><span class="n">monitor</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[28]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Total</th>
+      <th>Borrowed</th>
+      <th>Borrow Available</th>
+      <th>Withdraw Available</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>btc</th>
+      <td>0.05</td>
+      <td>1.1</td>
+      <td>0.123532</td>
+      <td>-0.487134</td>
+    </tr>
+    <tr>
+      <th>usdt</th>
+      <td>13543.1</td>
+      <td>0</td>
+      <td>1006.1</td>
+      <td>-3967.43</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>风险状况为：</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[29]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>Risk Rate             1.557151
+STOP OUT PRICE    11664.029880
+Name: BTC/USDT, dtype: float64</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>此时可见，价格如果不降反升，到达预估爆仓价：</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[30]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">stop_out_price</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[30]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>11664.029879639995</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>则账户会被平台接管，强制平仓</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="&#22810;&#31181;&#36164;&#20135;&#20316;&#20026;&#20445;&#35777;&#37329;&#30340;&#24773;&#20917;">&#22810;&#31181;&#36164;&#20135;&#20316;&#20026;&#20445;&#35777;&#37329;&#30340;&#24773;&#20917;<a class="anchor-link" href="#&#22810;&#31181;&#36164;&#20135;&#20316;&#20026;&#20445;&#35777;&#37329;&#30340;&#24773;&#20917;">&#182;</a></h2><p>实际上，客户不只能转入一种资产，转入转出均可同时有两种资产，转入均为增加保证金，降低杠杆，增加可借与可取出资产；转出则相反</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[31]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">deposit</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span> <span class="c1"># 假设以上情况下，客户追加保证金，转入0.5个 BTC 与1000 USDT</span>
+<span class="n">leverage_demo</span><span class="o">.</span><span class="n">all_deposit</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[31]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time</th>
+      <th>deposit_1</th>
+      <th>deposit_2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>1.523850e+09</td>
+      <td>0.0</td>
+      <td>5000.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1.523850e+09</td>
+      <td>0.5</td>
+      <td>1000.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>则此时资产情况为：</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[32]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk_monitor</span><span class="p">()</span>
+<span class="n">leverage_demo</span><span class="o">.</span><span class="n">monitor</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[32]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Total</th>
+      <th>Borrowed</th>
+      <th>Borrow Available</th>
+      <th>Withdraw Available</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>btc</th>
+      <td>0.55</td>
+      <td>1.1</td>
+      <td>1.3691</td>
+      <td>0.13565</td>
+    </tr>
+    <tr>
+      <th>usdt</th>
+      <td>14543.1</td>
+      <td>0</td>
+      <td>11150.5</td>
+      <td>1104.8</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>风险状况为：</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[33]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">leverage_demo</span><span class="o">.</span><span class="n">risk</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[33]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>Risk Rate             2.123319
+STOP OUT PRICE    21998.343811
+Name: BTC/USDT, dtype: float64</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>可见，由于客户追加了保证金，平仓线跟随上升，可借与可取资产也上升</p>
 
 </div>
 </div>
