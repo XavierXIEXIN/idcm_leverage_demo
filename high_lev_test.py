@@ -29,11 +29,12 @@ print('借入最高可借的',high_lev.borrow_available_1,'个',high_lev.currenc
 high_lev.loan(high_lev.borrow_available_1,0)
 print('全部卖出')
 high_lev.trade(high_lev.total_asset_1,0)
+print('当前价格：', high_lev.price)
 
 while True:
     sleep( 5 )
     high_lev.risk_monitor()
-    print('当前风险状况：')
+    print('\n当前风险状况：')
     print(high_lev.risk)
     print('当前资产情况：')
     print(high_lev.monitor)
